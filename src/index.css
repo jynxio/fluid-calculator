@@ -16,11 +16,13 @@
 
 :root {
 	background-color: #09090b;
+	color: #a1a1a9;
 	font-family: 'Geist Mono', monospace;
 	font-weight: 400;
 	font-style: normal;
 
 	* {
+		color: inherit;
 		font: inherit;
 	}
 }
