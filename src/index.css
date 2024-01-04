@@ -1,3 +1,30 @@
+@font-face {
+	font-family: 'Geist Mono';
+	font-weight: normal;
+	src:
+		local('Geist Mono'),
+		url('@/assets/geist-mono-regular.woff2') format('woff2');
+}
+
+@font-face {
+	font-family: 'Geist Mono';
+	font-weight: bold;
+	src:
+		local('Geist Mono'),
+		url('@/assets/geist-mono-bold.woff2') format('woff2');
+}
+
+:root {
+	background-color: #09090b;
+	font-family: 'Geist Mono', monospace;
+	font-weight: 400;
+	font-style: normal;
+
+	* {
+		font: inherit;
+	}
+}
+
 #root {
 	isolation: isolate;
 }
