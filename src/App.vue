@@ -4,11 +4,11 @@
 		<hr :class="$style.fence" />
 		<section :class="$style.control">
 			<div :class="$style.option">
-				<span :class="$style.text">clamp of x:</span>
+				<span :class="$style.text">clamp of wide:</span>
 				<span :class="$style.input"><Ratio /></span>
 			</div>
 			<div :class="$style.option">
-				<span :class="$style.text">clamp of y:</span>
+				<span :class="$style.text">clamp of size:</span>
 				<span :class="$style.input"><Ratio /></span>
 			</div>
 			<div :class="$style.option">
