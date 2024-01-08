@@ -1,25 +1,26 @@
 <template>
 	<div :class="$style.wrapper">
 		<span :class="[$style.option, $props.modelValue || $style.enabled]">
-			{{ $props.placeholder.off }}
+			<slot name="off" />
 		</span>
 		<button
 			:class="[$style.control, $props.modelValue && $style.on]"
 			@click="$emit('update:modelValue', !$props.modelValue)"
 		/>
 		<span :class="[$style.option, $props.modelValue && $style.enabled]">
-			{{ $props.placeholder.on }}
+			<slot name="on" />
 		</span>
 	</div>
 </template>
 
 <script setup lang="ts">
-defineProps<{ modelValue: boolean; placeholder: { off: string; on: string } }>();
+defineProps<{ modelValue: boolean }>();
 defineEmits<{ (e: 'update:modelValue', value: boolean): void }>();
 </script>
 
 <style module>
 .wrapper {
+	overflow: clip;
 	display: flex;
 	gap: calc(5 / 16 * 1rem);
 	align-items: center;
@@ -27,19 +28,25 @@ defineEmits<{ (e: 'update:modelValue', value: boolean): void }>();
 	padding: calc(4 / 16 * 1rem) calc(12 / 16 * 1rem);
 	border-radius: 4px;
 	border: 1px solid #27272a;
-	font-size: calc(14 / 16 * 100%);
 }
 
 .option {
+	flex: 0 0 25%;
+	text-align: center;
 	transition: color ease 200ms;
 
 	&.enabled {
 		color: #fafafa;
 	}
+
+	> svg {
+		block-size: calc(14 / 16 * 1rem);
+		inline-size: calc(14 / 16 * 1rem);
+		margin: calc(0.25 * 14 / 16 * 1rem) auto;
+	}
 }
 
 .control {
-	all: initial;
 	flex: 1 0 0;
 	position: relative;
 	box-sizing: content-box;
@@ -51,18 +58,19 @@ defineEmits<{ (e: 'update:modelValue', value: boolean): void }>();
 
 	&::after {
 		content: '';
-		position: absolute;
-		inset: 50% auto auto calc((5 / 16 * 1rem));
+		display: block;
 		aspect-ratio: 1 / 1;
-		inline-size: calc(14 / 16 * 1rem);
+		inline-size: 100%;
+		padding: calc(50% - (6 / 16 * 1rem));
 		border-radius: 999rem;
 		background-color: #a1a1a9;
-		translate: 0% -50%;
-		transition: all ease 200ms;
+		background-clip: content-box;
+		translate: calc(-50% + (6 / 16 * 1rem) * 2) -50%;
+		transition: translate ease 200ms;
 	}
 
 	&.on::after {
-		inset: 50% calc((5 / 16 * 1rem)) auto auto;
+		translate: calc(50% - (6 / 16 * 1rem) * 2) -50%;
 	}
 }
 </style>

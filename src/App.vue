@@ -1,70 +1,169 @@
 <template>
 	<div :class="$style.wrapper">
-		<section :class="$style.formula" v-html="html" />
+		<section :class="$style.formula" @click="handleCopy" v-html="html" />
 		<hr :class="$style.fence" />
 		<section :class="$style.control">
 			<div :class="$style.option">
-				<span :class="$style.text">Viewport width range:</span>
-				<span :class="$style.input"><Ratio /></span>
+				<span :class="$style.text">Unit:</span>
+				<span :class="$style.input">
+					<Switch v-model="isRem">
+						<template #off>px</template>
+						<template #on>rem</template>
+					</Switch>
+				</span>
 			</div>
 			<div :class="$style.option">
-				<span :class="$style.text">Fluid size range:</span>
-				<span :class="$style.input"><Ratio /></span>
+				<span :class="$style.text">Trend:</span>
+				<span :class="$style.input">
+					<Switch v-model="isUp">
+						<template #off><TrendDown /></template>
+						<template #on><TrendUp /></template>
+					</Switch>
+				</span>
 			</div>
 			<div :class="$style.option">
 				<span :class="$style.text">Root font size:</span>
-				<span :class="$style.input"><Input /></span>
+				<span :class="$style.input"><Count v-model="rootFontSize" /></span>
 			</div>
 			<div :class="$style.option">
-				<span :class="$style.text">Unit:</span>
-				<span :class="$style.input"><Switch v-model="isRem" :placeholder="{ off: 'px', on: 'rem' }" /></span>
+				<span :class="$style.text">Fluid size range:</span>
+				<span :class="$style.input"><Ratio v-model="fluidRange" /></span>
+			</div>
+			<div :class="$style.option">
+				<span :class="$style.text">Viewport size range:</span>
+				<span :class="$style.input"><Ratio v-model="viewportRange" /></span>
 			</div>
 		</section>
+		<Teleport to="body">
+			<Transition>
+				<Bubble v-if="bubbleVisible">{{ bubbleMsg }}</Bubble>
+			</Transition>
+		</Teleport>
 	</div>
 </template>
 
 <script setup lang="ts">
 import Ratio from '@/components/Ratio.vue';
-import Input from '@/components/Input.vue';
+import Count from '@/components/Count.vue';
 import Switch from '@/components/Switch.vue';
+import Bubble from '@/components/Bubble.vue';
+import TrendUp from '@/components/icon/TrendUp.vue';
+import TrendDown from '@/components/icon/TrendDown.vue';
 import { codeToHtml } from 'shikiji';
-import { ref, onBeforeMount } from 'vue';
+import { ref, watchEffect } from 'vue';
 
-const isRem = ref(true);
+type Range = [number, number];
 
+let settimeId: NodeJS.Timeout;
+const bubbleMsg = ref<'Copied!' | 'Copy failed!'>('Copied!');
+const bubbleVisible = ref(false);
+
+const text = ref('');
 const html = ref('');
-const code = `
-.wrapper {
-    font-size: clamp(2rem, 3vw + 2rem, 3rem);
-}
-`;
+const isUp = ref(true);
+const isRem = ref(true);
+const rootFontSize = ref(16);
+const fluidRange = ref<Range>([16, 48]);
+const viewportRange = ref<Range>([500, 1000]);
 
-onBeforeMount(async () => (html.value = await codeToHtml(code.trim(), { lang: 'css', theme: 'nord' })));
+watchEffect(onCleanup => {
+	let abortion = false;
+	const formula = createClampFormula({
+		unit: isRem.value ? 'rem' : 'px',
+		fluidRange: fluidRange.value,
+		viewportRange: viewportRange.value,
+		rootFontSize: rootFontSize.value,
+		trend: isUp.value ? 'ascending' : 'descending',
+	});
+	const code = `a{a:clamp(${formula}) }`;
 
-/**
- * 计算CSS的clamp公式
- * @param param0 第一个坐标，横轴与纵轴的单位均为px
- * @param param1 第二个坐标，横轴与纵轴的单位均为px
- * @return 代表clamp公式的字符串
- * @example
- * f([500, 16], [1000, 48]); // "6.4vw -1rem"
- */
-function createFormula([x1, y1]: [number, number], [x2, y2]: [number, number]) {
+	text.value = code.slice(4, -2);
+
+	onCleanup(() => (abortion = true));
+	codeToHtml(code, { lang: 'css', theme: 'nord' }).then(res => {
+		if (abortion) return;
+
+		const parser = new DOMParser();
+		const dom = parser.parseFromString(res, 'text/html');
+		const line = dom.querySelector('.line')!;
+		const children = Array.from(line.children);
+
+		line.removeChild(children[0]);
+		line.removeChild(children[1]);
+		line.removeChild(children[2]);
+		line.removeChild(children[3]);
+		line.removeChild(children.at(-1)!);
+
+		html.value = dom.querySelector('body')!.innerHTML;
+	});
+});
+
+function createClampFormula({
+	unit,
+	fluidRange,
+	viewportRange,
+	rootFontSize = 16,
+	trend = 'ascending',
+}: {
+	unit: 'px' | 'rem';
+	trend: 'ascending' | 'descending';
+	fluidRange: Range;
+	viewportRange: Range;
+	rootFontSize?: number;
+}) {
+	const viewportMin = Math.min(...viewportRange);
+	const viewportMax = Math.max(...viewportRange);
+
+	const fluidMin = Math.min(...fluidRange);
+	const fluidMax = Math.max(...fluidRange);
+
+	const coorA = trend === 'ascending' ? [viewportMin, fluidMin] : [viewportMin, fluidMax];
+	const coorB = trend === 'ascending' ? [viewportMax, fluidMax] : [viewportMax, fluidMin];
+
 	// y = ax + b
-	const a = (y2 - y1) / (x2 - x1);
-	const b = y1 - a * x1;
+	const a = (coorB[1] - coorA[1]) / (coorB[0] - coorA[0]);
+	const b = coorA[1] - a * coorA[0];
 
-	// y = vwx + rem
-	const vw = Number((a * 100 * 100).toFixed()) / 100;
-	const rem = Number(((b / 16) * 100).toFixed()) / 100;
+	const vw = Number((a * 100).toFixed(1));
+	const px = b;
+	const rem = Number((px / rootFontSize).toFixed(1));
 
-	// sign
-	const sign = Math.sign(rem); // +1 | -1 | +0 | -0 | NaN
+	const sign = Math.sign(b); // +1 | -1 | +0 | -0 | NaN
 
-	if (Number.isNaN(sign)) throw new Error('rem parameter is NaN');
-	if (sign === 0) return `${vw}vw`;
+	let formula: string;
+	let prefix: string;
+	let suffix: string;
 
-	return `${vw}vw ${Math.abs(rem) * sign}rem`;
+	switch (unit) {
+		case 'px':
+			prefix = `${fluidMin}px`;
+			suffix = `${fluidMax}px`;
+			formula = sign === 0 ? `${vw}vw` : `${vw}vw ${sign > 0 ? '+' : '-'} ${Math.abs(px)}px`;
+			break;
+		case 'rem':
+			prefix = `${Number((fluidMin / rootFontSize).toFixed(1))}rem`;
+			suffix = `${Number((fluidMax / rootFontSize).toFixed(1))}rem`;
+			formula = sign === 0 ? `${vw}vw` : `${vw}vw ${sign > 0 ? '+' : '-'} ${Math.abs(rem)}rem`;
+			break;
+	}
+
+	return `${prefix}, ${formula}, ${suffix}`;
+}
+
+function handleCopy() {
+	navigator.clipboard
+		.writeText(text.value)
+		.then(() => {
+			bubbleMsg.value = 'Copied!';
+		})
+		.catch(() => {
+			bubbleMsg.value = 'Copy failed!';
+		})
+		.finally(() => {
+			bubbleVisible.value = true;
+			clearTimeout(settimeId);
+			settimeId = setTimeout(() => (bubbleVisible.value = false), 1000);
+		});
 }
 </script>
 
@@ -77,23 +176,33 @@ function createFormula([x1, y1]: [number, number], [x2, y2]: [number, number]) {
 	position: absolute;
 	inset: 0;
 	block-size: fit-content;
-	inline-size: fit-content;
+	inline-size: 21rem;
 	margin: auto;
 }
 
 .fence {
-	all: initial;
 	block-size: 1px;
 	inline-size: 100%;
 	background-color: #27272a;
 }
 
 .formula {
+	inline-size: 100%;
+	user-select: none;
+	cursor: pointer;
+
 	> pre {
+		overflow-x: auto;
 		padding: 1rem;
 		border-radius: 4px;
 		border: 1px solid #27272a;
+		font-size: calc(12 / 16 * 1rem);
+		text-align: center;
 		background-color: #18181b !important;
+
+		* {
+			font-size: calc(13 / 16 * 1rem);
+		}
 	}
 }
 
@@ -101,15 +210,34 @@ function createFormula([x1, y1]: [number, number], [x2, y2]: [number, number]) {
 	display: flex;
 	gap: 1rem;
 	flex-direction: column;
+	inline-size: 100%;
 
 	> .option {
 		display: flex;
 		gap: 1rem;
+		justify-content: space-around;
 		align-items: center;
 
 		> .text {
-			inline-size: 15rem;
+			flex: 1 0 0;
 		}
 	}
+}
+</style>
+
+<style>
+.v-enter-active,
+.v-leave-active {
+	transition: opacity ease 200ms;
+}
+
+.v-enter-to,
+.v-leave-from {
+	opacity: 1;
+}
+
+.v-enter-from,
+.v-leave-to {
+	opacity: 0;
 }
 </style>

@@ -1,5 +1,9 @@
 * {
 	margin: 0;
+	padding: 0;
+	outline: none;
+	border: none;
+	background-color: transparent;
 }
 
 *,
@@ -14,16 +18,20 @@ body {
 	min-block-size: 100dvh;
 }
 
+html {
+	line-height: 1.5;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}
+
 html:focus-within {
 	scroll-behavior: smooth;
 }
 
-body {
-	line-height: 1.5;
-	/* stylelint-disable-next-line value-keyword-case */
-	text-rendering: optimizeSpeed;
-	-webkit-font-smoothing: antialiased;
-	-moz-osx-font-smoothing: grayscale;
+html * {
+	color: inherit;
+	font: inherit;
+	line-height: inherit;
 }
 
 img,

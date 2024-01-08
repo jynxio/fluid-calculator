@@ -24,7 +24,8 @@
 	"globals": {
 		"defineProps": true,
 		"defineEmits": true,
-		"defineExpose": true
+		"defineExpose": true,
+		"NodeJS": true
 	},
 	"rules": {
 		"vue/multi-word-component-names": "off",
