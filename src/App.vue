@@ -38,6 +38,12 @@
 			<Transition>
 				<Bubble v-if="bubbleVisible">{{ bubbleMsg }}</Bubble>
 			</Transition>
+			<footer :class="$style.footer">
+				<p>
+					Made by Jynxio |
+					<a href="https://github.com/jynxio/fluid-calculator" target="_blank">Source Code</a>
+				</p>
+			</footer>
 		</Teleport>
 	</div>
 </template>
@@ -227,6 +233,13 @@ function handleCopy() {
 			flex: 1 0 0;
 		}
 	}
+}
+
+.footer {
+	position: fixed;
+	inset: auto 0 1rem;
+	inline-size: fit-content;
+	margin: auto;
 }
 </style>
 
