@@ -49,7 +49,9 @@ import Switch from '@/components/Switch.vue';
 import Bubble from '@/components/Bubble.vue';
 import TrendUp from '@/components/icon/TrendUp.vue';
 import TrendDown from '@/components/icon/TrendDown.vue';
-import { codeToHtml } from 'shikiji';
+import nord from 'shikiji/themes/nord.mjs';
+import { getHighlighterCore, HighlighterCore } from 'shikiji/core';
+import { getWasmInlined } from 'shikiji/wasm';
 import { ref, watchEffect } from 'vue';
 
 type Range = [number, number];
@@ -66,8 +68,17 @@ const rootFontSize = ref(16);
 const fluidRange = ref<Range>([16, 48]);
 const viewportRange = ref<Range>([500, 1000]);
 
-watchEffect(onCleanup => {
-	let abortion = false;
+const highlighter = ref<HighlighterCore>();
+
+getHighlighterCore({
+	themes: [nord],
+	langs: [import('shikiji/langs/css.mjs')],
+	loadWasm: getWasmInlined,
+}).then(res => (highlighter.value = res));
+
+watchEffect(() => {
+	if (!highlighter.value) return;
+
 	const formula = createClampFormula({
 		unit: isRem.value ? 'rem' : 'px',
 		fluidRange: fluidRange.value,
@@ -76,26 +87,20 @@ watchEffect(onCleanup => {
 		trend: isUp.value ? 'ascending' : 'descending',
 	});
 	const code = `a{a:clamp(${formula}) }`;
+	const innerHtml = highlighter.value.codeToHtml(code, { lang: 'css', theme: 'nord' });
+	const parser = new DOMParser();
+	const dom = parser.parseFromString(innerHtml, 'text/html');
+	const line = dom.querySelector('.line')!;
+	const children = Array.from(line.children);
+
+	line.removeChild(children[0]);
+	line.removeChild(children[1]);
+	line.removeChild(children[2]);
+	line.removeChild(children[3]);
+	line.removeChild(children.at(-1)!);
 
 	text.value = code.slice(4, -2);
-
-	onCleanup(() => (abortion = true));
-	codeToHtml(code, { lang: 'css', theme: 'nord' }).then(res => {
-		if (abortion) return;
-
-		const parser = new DOMParser();
-		const dom = parser.parseFromString(res, 'text/html');
-		const line = dom.querySelector('.line')!;
-		const children = Array.from(line.children);
-
-		line.removeChild(children[0]);
-		line.removeChild(children[1]);
-		line.removeChild(children[2]);
-		line.removeChild(children[3]);
-		line.removeChild(children.at(-1)!);
-
-		html.value = dom.querySelector('body')!.innerHTML;
-	});
+	html.value = dom.querySelector('body')!.innerHTML;
 });
 
 function createClampFormula({
