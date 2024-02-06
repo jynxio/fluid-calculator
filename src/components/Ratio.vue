@@ -54,7 +54,6 @@ function handleInputB(event: Event) {
 		flex: 1 0 0;
 		min-inline-size: 0;
 		color: #fafafa;
-		font: inherit;
 
 		&.dividend {
 			text-align: right;

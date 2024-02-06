@@ -55,9 +55,7 @@ import Switch from '@/components/Switch.vue';
 import Bubble from '@/components/Bubble.vue';
 import TrendUp from '@/components/icon/TrendUp.vue';
 import TrendDown from '@/components/icon/TrendDown.vue';
-import nord from 'shikiji/themes/nord.mjs';
-import { getHighlighterCore, HighlighterCore } from 'shikiji/core';
-import { getWasmInlined } from 'shikiji/wasm';
+import { getHighlighter } from 'shiki';
 import { ref, watchEffect } from 'vue';
 
 type Range = [number, number];
@@ -73,15 +71,9 @@ const isRem = ref(true);
 const rootFontSize = ref(16);
 const fluidRange = ref<Range>([16, 48]);
 const viewportRange = ref<Range>([500, 1000]);
+const highlighter = ref();
 
-const highlighter = ref<HighlighterCore>();
-
-getHighlighterCore({
-	themes: [nord],
-	langs: [import('shikiji/langs/css.mjs')],
-	loadWasm: getWasmInlined,
-}).then(res => (highlighter.value = res));
-
+getHighlighter({ themes: ['nord'], langs: ['css'] }).then(res => (highlighter.value = res));
 watchEffect(() => {
 	if (!highlighter.value) return;
 
@@ -187,8 +179,13 @@ function handleCopy() {
 	position: absolute;
 	inset: 0;
 	block-size: fit-content;
-	inline-size: 21rem;
+	inline-size: 22rem;
 	margin: auto;
+
+	@media (width <= 550px) {
+		inline-size: 100%;
+		padding-inline: 10px;
+	}
 }
 
 .fence {
@@ -198,18 +195,21 @@ function handleCopy() {
 }
 
 .formula {
+	box-sizing: content-box;
 	inline-size: 100%;
+	block-size: 3rem;
+	border-radius: 4px;
+	border: 1px solid #27272a;
+	background-color: #18181b !important;
 	user-select: none;
 	cursor: pointer;
 
 	> pre {
 		overflow-x: auto;
-		padding: 1rem;
-		border-radius: 4px;
-		border: 1px solid #27272a;
-		font-size: calc(12 / 16 * 1rem);
+		background-color: transparent !important;
+		font-size: calc(13 / 16 * 1rem);
+		line-height: 3rem;
 		text-align: center;
-		background-color: #18181b !important;
 
 		* {
 			font-size: calc(13 / 16 * 1rem);

@@ -79,7 +79,6 @@ function handleDecrease() {
 	flex: 1 0 0;
 	min-inline-size: 0;
 	color: #fafafa;
-	font: inherit;
 	text-align: center;
 }
 
