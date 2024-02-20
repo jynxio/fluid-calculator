@@ -6,8 +6,8 @@ settings:
 
 dependencies:
   shiki:
-    specifier: 1.1.2
-    version: 1.1.2
+    specifier: 1.1.5
+    version: 1.1.5
   vue:
     specifier: ^3.4.19
     version: 3.4.19(typescript@5.3.3)
@@ -928,8 +928,8 @@ packages:
     dev: true
     optional: true
 
-  /@shikijs/core@1.1.2:
-    resolution: {integrity: sha512-ERVzNQz88ZkDqUpWeC57Kp+Kmx5RjqeDBR1M8AGWGom4yrkITiTfXCGmjchlDSw12MhDTuPYR4HVFW8uT61RaQ==}
+  /@shikijs/core@1.1.5:
+    resolution: {integrity: sha512-cKc5vGQ4p/4sjx48BHIO7CvLaN32vqpz5Wh7v2n+U1EezGdfX4Wms7khBctKz3iCg9yYq4sfGUc2t+JWj6EUsw==}
     dev: false
 
   /@types/estree@1.0.5:
@@ -2831,10 +2831,10 @@ packages:
     engines: {node: '>=8'}
     dev: true
 
-  /shiki@1.1.2:
-    resolution: {integrity: sha512-qNzFwTv5uhEDNUIwp7wHjsrffVeLbmOgWnM5mZZhoiz7G2qAUvqVfUzuWfieD45/YAKipzCtdV9SndacKtABow==}
+  /shiki@1.1.5:
+    resolution: {integrity: sha512-754GuKIwkUdT810Xm8btuyNQPL+q3PqOkwGW/VlmAWyMYp+HbvvDt69sWXO1sm5aeczBJQjmQTTMR4GkKQNQPw==}
     dependencies:
-      '@shikijs/core': 1.1.2
+      '@shikijs/core': 1.1.5
     dev: false
 
   /signal-exit@4.1.0:

@@ -13,7 +13,7 @@
 		"lint:css": "stylelint \"**/*.{css,scss,sass,less,postcss,vue}\" --fix"
 	},
 	"dependencies": {
-		"shiki": "1.1.2",
+		"shiki": "1.1.5",
 		"vue": "^3.4.19"
 	},
 	"devDependencies": {
